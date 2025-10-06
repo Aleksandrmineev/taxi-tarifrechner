@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="de">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Taxi-Tarifrechner</title>
+    <style>
+      :root {
+        --bg: #0b0f14;
+        --card: #121821;
+        --text: #e6eef7;
+        --muted: #a8b3c5;
+        --accent: #4da3ff;
+        --radius: 16px;
+        --shadow: 0 10px 30px rgba(0, 0, 0, 0.35);
+      }
+      * {
+        box-sizing: border-box;
+      }
+      html,
+      body {
+        height: 100%;
+      }
+      body {
+        margin: 0;
+        font: 500 16px/1.45 system-ui, -apple-system, Segoe UI, Roboto, Inter,
+          Arial, sans-serif;
+        color: var(--text);
+        background: radial-gradient(
+            1200px 600px at 50% -20%,
+            rgba(77, 163, 255, 0.15),
+            transparent 60%
+          ),
+          radial-gradient(
+            800px 400px at 80% 120%,
+            rgba(77, 163, 255, 0.1),
+            transparent 60%
+          ),
+          var(--bg);
+        display: grid;
+        place-items: center;
+        padding: 24px;
+      }
+      .card {
+        width: min(680px, 100%);
+        background: var(--card);
+        border-radius: var(--radius);
+        box-shadow: var(--shadow);
+        padding: clamp(20px, 4vw, 32px);
+      }
+      h1 {
+        margin: 0 0 12px;
+        font-weight: 700;
+        font-size: clamp(28px, 4.2vw, 40px);
+        letter-spacing: 0.2px;
+        text-align: center;
+      }
+      .subtitle {
+        margin: 0 0 28px;
+        color: var(--muted);
+        text-align: center;
+        font-size: clamp(14px, 2.4vw, 16px);
+      }
+      .input-center {
+        display: grid;
+        place-items: center;
+        margin-bottom: 24px;
+      }
+      input[type="number"] {
+        width: clamp(200px, 60%, 300px);
+        font: 600 clamp(22px, 5vw, 28px) / 1.2 system-ui;
+        color: var(--text);
+        text-align: center;
+        background: #0e141c;
+        border: 1px solid #1b2738;
+        border-radius: 12px;
+        padding: 14px 18px;
+        outline: none;
+        transition: border-color 0.15s ease, box-shadow 0.15s ease;
+      }
+      input[type="number"]:focus {
+        border-color: var(--accent);
+        box-shadow: 0 0 0 4px rgba(77, 163, 255, 0.15);
+      }
+
+      .formula {
+        margin-top: 18px;
+        padding: 12px 14px;
+        background: #0f1620;
+        border: 1px dashed #233045;
+        border-radius: 12px;
+        color: var(--muted);
+        font-size: 14px;
+      }
+      .formula code {
+        font-family: ui-monospace, SFMono-Regular, Menlo, Consolas,
+          "Liberation Mono", monospace;
+      }
+
+      .totals {
+        margin-top: 16px;
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 12px;
+      }
+      @media (max-width: 520px) {
+        .totals {
+          grid-template-columns: 1fr;
+        }
+        input[type="number"] {
+          width: 100%;
+        }
+      }
+      .total {
+        background: #0e141c;
+        border: 1px solid #1b2738;
+        border-radius: 12px;
+        padding: 14px 16px;
+        display: grid;
+        align-content: center;
+        gap: 6px;
+      }
+      .total span {
+        color: var(--muted);
+        font-size: 13px;
+        letter-spacing: 0.2px;
+      }
+      .total strong {
+        font-size: clamp(22px, 3.6vw, 28px);
+        font-weight: 800;
+        letter-spacing: 0.2px;
+      }
+      .muted {
+        color: var(--muted);
+      }
+      .rates {
+        margin-top: 18px;
+        font-size: 14px;
+        color: var(--muted);
+        display: grid;
+        gap: 6px;
+      }
+      .footnote {
+        margin-top: 10px;
+        font-size: 12px;
+        color: var(--muted);
+        opacity: 0.85;
+        text-align: center;
+      }
+      .surcharge {
+        margin-top: 20px;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        gap: 10px;
+        color: var(--muted);
+        font-size: 14px;
+      }
+    </style>
+  </head>
+  <body>
+    <main class="card" role="main">
+      <h1>Taxi-Tarifrechner</h1>
+      <p class="subtitle">
+        Grundtarif <strong>5,00 €</strong> · Staffelpreise bis/über 5 km ·
+        Live-Berechnung ohne Button
+      </p>
+
+      <div class="input-center">
+        <input
+          id="km"
+          name="km"
+          type="number"
+          step="0.1"
+          min="0"
+          inputmode="decimal"
+          placeholder="0,0"
+          aria-label="Entfernung in Kilometern"
+          autofocus
+        />
+        <p class="footnote">
+          Hinweis: Erste 5 km und danach getrennte km-Preise für Tag und
+          Nacht/Feiertag.
+        </p>
+      </div>
+
+      <section class="formula" aria-live="polite" aria-atomic="true">
+        <div id="formula-day">
+          <code
+            >Tag: 5,00 € + 2,90 € × min(km, 5) + 2,80 € × max(km − 5, 0)</code
+          >
+        </div>
+        <div id="formula-night" style="margin-top: 6px">
+          <code
+            >Nacht/Feiertag: 5,00 € + 3,30 € × min(km, 5) + 2,80 € × max(km − 5,
+            0)</code
+          >
+        </div>
+      </section>
+
+      <section class="totals" aria-live="polite" aria-atomic="true">
+        <div class="total" id="total-day">
+          <span>Tag</span>
+          <strong>0,00 €</strong>
+        </div>
+        <div class="total" id="total-night">
+          <span>Nacht / Feiertag</span>
+          <strong>0,00 €</strong>
+        </div>
+      </section>
+
+      <div class="surcharge">
+        <input id="surcharge" type="checkbox" />
+        <label for="surcharge"
+          >Zuschlag 2,70 € (mehr als 4 Personen, Schneeketten oder
+          Sportgeräte-Transporte)</label
+        >
+      </div>
+
+      <div class="rates">
+        <div>
+          Bis 5 km:
+          <span class="muted">Tag 2,90 €/km · Nacht/Feiertag 3,30 €/km</span>
+        </div>
+        <div>
+          Über 5 km:
+          <span class="muted">Tag 2,80 €/km · Nacht/Feiertag 2,80 €/km</span>
+        </div>
+      </div>
+    </main>
+
+    <script>
+      (() => {
+        const nf = new Intl.NumberFormat("de-AT", {
+          style: "currency",
+          currency: "EUR",
+        });
+
+        const RATES = {
+          base: 5,
+          dayFirst: 2.9,
+          dayNext: 2.8,
+          nightFirst: 3.3,
+          nightNext: 2.8,
+          cutoff: 5,
+          surcharge: 2.7,
+        };
+
+        const kmInput = document.getElementById("km");
+        const totalDayEl = document.querySelector("#total-day strong");
+        const totalNightEl = document.querySelector("#total-night strong");
+        const fDay = document.getElementById("formula-day");
+        const fNight = document.getElementById("formula-night");
+        const surchargeEl = document.getElementById("surcharge");
+
+        function calcTotal(km, firstRate, nextRate) {
+          const firstKm = Math.min(Math.max(km, 0), RATES.cutoff);
+          const nextKm = Math.max(km - RATES.cutoff, 0);
+          const total = RATES.base + firstKm * firstRate + nextKm * nextRate;
+          return { total, firstKm, nextKm };
+        }
+
+        function fmt(x) {
+          return nf.format(Math.round(x * 100) / 100);
+        }
+
+        function fmtNum(x) {
+          return new Intl.NumberFormat("de-AT", {
+            minimumFractionDigits: x % 1 ? 1 : 0,
+            maximumFractionDigits: 1,
+          }).format(x);
+        }
+
+        function update() {
+          const raw = kmInput.value.replace(",", ".");
+          const km = Number.parseFloat(raw);
+          const kmValid = Number.isFinite(km) && km >= 0 ? km : 0;
+          const addS = surchargeEl && surchargeEl.checked ? RATES.surcharge : 0;
+
+          const day = calcTotal(kmValid, RATES.dayFirst, RATES.dayNext);
+          const night = calcTotal(kmValid, RATES.nightFirst, RATES.nightNext);
+
+          totalDayEl.textContent = fmt(day.total + addS);
+          totalNightEl.textContent = fmt(night.total + addS);
+
+          fDay.innerHTML = `<code>Tag: ${fmt(RATES.base)} + ${fmt(
+            RATES.dayFirst
+          )} × ${fmtNum(day.firstKm)} km + ${fmt(RATES.dayNext)} × ${fmtNum(
+            day.nextKm
+          )} km${addS ? " + 2,70 € Zuschlag" : ""}</code>`;
+          fNight.innerHTML = `<code>Nacht/Feiertag: ${fmt(RATES.base)} + ${fmt(
+            RATES.nightFirst
+          )} × ${fmtNum(night.firstKm)} km + ${fmt(RATES.nightNext)} × ${fmtNum(
+            night.nextKm
+          )} km${addS ? " + 2,70 € Zuschlag" : ""}</code>`;
+        }
+
+        update();
+        kmInput.addEventListener("input", update);
+        surchargeEl && surchargeEl.addEventListener("change", update);
+      })();
+    </script>
+  </body>
+</html>
