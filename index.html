@@ -4,372 +4,168 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>MurtalTaxi – Fahrpreisrechner</title>
-    <style>
-      :root {
-        --bg: #0b0f14;
-        --card: #121821;
-        --text: #e6eef7;
-        --muted: #a8b3c5;
-        --accent: #4da3ff;
-        --radius: 16px;
-        --shadow: 0 10px 30px rgba(0, 0, 0, 0.35);
-      }
-      * {
-        box-sizing: border-box;
-      }
-      html,
-      body {
-        height: 100%;
-      }
-      body {
-        margin: 0;
-        font: 500 16px/1.45 system-ui, -apple-system, Segoe UI, Roboto, Inter,
-          Arial, sans-serif;
-        color: var(--text);
-        background: radial-gradient(
-            1200px 600px at 50% -20%,
-            rgba(77, 163, 255, 0.15),
-            transparent 60%
-          ),
-          radial-gradient(
-            800px 400px at 80% 120%,
-            rgba(77, 163, 255, 0.1),
-            transparent 60%
-          ),
-          var(--bg);
-        display: grid;
-        place-items: center;
-        padding: 24px;
-      }
-      .card {
-        width: min(680px, 100%);
-        background: var(--card);
-        border-radius: var(--radius);
-        box-shadow: var(--shadow);
-        padding: clamp(20px, 4vw, 32px);
-      }
-      h1 {
-        margin: 0 0 12px;
-        font-weight: 700;
-        font-size: clamp(28px, 4.2vw, 40px);
-        letter-spacing: 0.2px;
-        text-align: center;
-      }
-      .subtitle {
-        /* margin: 0 0 28px; */
-        color: var(--muted);
-        text-align: center;
-        font-size: clamp(14px, 2.4vw, 16px);
-      }
-      .input-center {
-        display: grid;
-        place-items: center;
-        /* margin-bottom: 12px; */
-      }
-      input[type="number"] {
-        width: clamp(200px, 60%, 300px);
-        font: 600 clamp(22px, 5vw, 28px) / 1.2 system-ui;
-        color: var(--text);
-        text-align: center;
-        background: #0e141c;
-        border: 1px solid #1b2738;
-        border-radius: 12px;
-        padding: 14px 18px;
-        outline: none;
-        transition: border-color 0.15s ease, box-shadow 0.15s ease;
-      }
-      input[type="number"]:focus {
-        border-color: var(--accent);
-        box-shadow: 0 0 0 4px rgba(77, 163, 255, 0.15);
-      }
 
-      .formula {
-        margin-top: 18px;
-        padding: 12px 14px;
-        background: #0f1620;
-        border: 1px dashed #233045;
-        border-radius: 12px;
-        color: var(--muted);
-        font-size: 12px;
-      }
-      .formula code {
-        font-family: ui-monospace, SFMono-Regular, Menlo, Consolas,
-          "Liberation Mono", monospace;
-      }
+    <link
+      rel="apple-touch-icon"
+      sizes="180x180"
+      href="./assets/favicon/apple-touch-icon.png"
+    />
+    <link
+      rel="icon"
+      type="image/png"
+      sizes="32x32"
+      href="./assets/favicon/favicon-32x32.png"
+    />
+    <link
+      rel="icon"
+      type="image/png"
+      sizes="16x16"
+      href="./assets/favicon/favicon-16x16.png"
+    />
+    <link rel="manifest" href="./assets/favicon/site.webmanifest" />
 
-      .totals {
-        /* margin-top: 16px; */
-        display: grid;
-        grid-template-columns: 1fr 1fr;
-        gap: 12px;
-      }
-
-      @media (max-width: 520px) {
-        .totals {
-          grid-template-columns: 1fr 1fr;
+    <!-- Boot: Thema früh setzen (keine „Flashes“) -->
+    <script>
+      (function () {
+        try {
+          const saved = localStorage.getItem("theme");
+          const prefersDark = matchMedia(
+            "(prefers-color-scheme: dark)"
+          ).matches;
+          const theme = saved || (prefersDark ? "dark" : "light");
+          document.documentElement.setAttribute("data-theme", theme);
+        } catch (e) {
+          document.documentElement.setAttribute("data-theme", "dark");
         }
-        input[type="number"] {
-          width: 100%;
-        }
-      }
-      .total {
-        background: #0e141c;
-        border: 1px solid #1b2738;
-        border-radius: 12px;
-        padding: 14px 16px;
-        display: grid;
-        align-content: center;
-        gap: 6px;
-      }
-      .total span {
-        color: var(--muted);
-        font-size: 13px;
-        letter-spacing: 0.2px;
-      }
-      .total strong {
-        font-size: clamp(22px, 3.6vw, 28px);
-        font-weight: 800;
-        letter-spacing: 0.2px;
-      }
-      .muted {
-        color: var(--muted);
-      }
-      .rates {
-        margin-top: 18px;
-        font-size: 14px;
-        color: var(--muted);
-        display: grid;
-        gap: 6px;
-      }
-      .footnote {
-        margin-top: 10px;
-        font-size: 12px;
-        color: var(--muted);
-        opacity: 0.85;
-        text-align: center;
-      }
-      .surcharge {
-        margin-top: 20px;
-        display: flex;
-        gap: 12px;
-        align-items: center;
-        justify-content: center;
-      }
-      #surchargeBtn {
-        background: #0e141c;
-        color: var(--text);
-        border: 1px solid #1b2738;
-        border-radius: 10px;
-        padding: 8px 12px;
-        cursor: pointer;
-        box-shadow: var(--shadow);
-        font-weight: 700;
-      }
-      #surchargeBtn:hover {
-        filter: brightness(1.05);
-      }
-      #surchargeCount {
-        margin-left: 6px;
-        color: #35d07f;
-      }
-    </style>
+      })();
+    </script>
+    <link rel="stylesheet" href="./assets/css/theme.css" />
+    <link rel="stylesheet" href="./assets/css/main.css" />
   </head>
   <body>
     <main class="card" role="main">
-      <h1>MurtalTaxi – Fahrpreisrechner</h1>
-      <p class="subtitle">Steiermärkische Fahrpreistarife</p>
+      <div class="container">
+        <h1>MurtalTaxi – Fahrpreisrechner</h1>
+        <p class="subtitle">Steiermärkische Fahrpreistarife</p>
 
-      <div class="input-center">
-        <input
-          id="km"
-          name="km"
-          type="number"
-          step="0.1"
-          min="0"
-          inputmode="decimal"
-          placeholder="0,0"
-          aria-label="Entfernung in Kilometern"
-          autofocus
-        />
-        <p class="footnote">Hinweis: Geben Sie die Fahrtstrecke ein.</p>
+        <div class="input-center">
+          <input
+            id="km"
+            name="km"
+            type="number"
+            step="0.1"
+            min="0"
+            inputmode="decimal"
+            placeholder="0,0"
+            aria-label="Entfernung in Kilometern"
+            autofocus
+          />
+          <p class="footnote">Hinweis: Geben Sie die Fahrtstrecke ein.</p>
+        </div>
+
+        <section class="totals" aria-live="polite" aria-atomic="true">
+          <div class="total" id="total-day">
+            <span>Tag</span>
+            <strong>0,00 €</strong>
+          </div>
+          <div class="total" id="total-night">
+            <span>Nacht / Feiertag</span>
+            <strong>0,00 €</strong>
+          </div>
+        </section>
+
+        <section class="formula" aria-live="polite" aria-atomic="true">
+          <div id="formula-day">
+            <code
+              >Tag: 5,00 € + 2,90 € × min(km, 5) + 2,80 € × max(km − 5, 0)</code
+            >
+          </div>
+          <div id="formula-night" style="margin-top: 6px">
+            <code
+              >Nacht/Feiertag: 5,00 € + 3,30 € × min(km, 5) + 2,80 € × max(km −
+              5, 0)</code
+            >
+          </div>
+        </section>
+
+        <div class="surcharge">
+          <button id="surchargeBtn" type="button" aria-live="polite">
+            Zuschlag +2,70 € <strong id="surchargeCount">× 0</strong>
+          </button>
+          <span class="muted"
+            >Mehr als 4 Pers., Schneeketten, Sportgeräte-Transporte</span
+          >
+        </div>
+
+        <div class="rates">
+          <div>
+            Bis 5 km:
+            <span class="muted">Tag 2,90 €/km · Nacht/Feiertag 3,30 €/km</span>
+          </div>
+          <div>
+            Über 5 km:
+            <span class="muted">Tag 2,80 €/km · Nacht/Feiertag 2,80 €/km</span>
+          </div>
+          <div>
+            Nachttarif: <span class="muted">20:00 – 6:00</span> Feiertage:
+            <span class="muted">Feiertage, sonntags</span>
+          </div>
+        </div>
       </div>
-
-      <section class="totals" aria-live="polite" aria-atomic="true">
-        <div class="total" id="total-day">
-          <span>Tag</span>
-          <strong>0,00 €</strong>
-        </div>
-        <div class="total" id="total-night">
-          <span>Nacht / Feiertag</span>
-          <strong>0,00 €</strong>
-        </div>
-      </section>
-
-      <section class="formula" aria-live="polite" aria-atomic="true">
-        <div id="formula-day">
-          <code
-            >Tag: 5,00 € + 2,90 € × min(km, 5) + 2,80 € × max(km − 5, 0)</code
-          >
-        </div>
-        <div id="formula-night" style="margin-top: 6px">
-          <code
-            >Nacht/Feiertag: 5,00 € + 3,30 € × min(km, 5) + 2,80 € × max(km − 5,
-            0)</code
-          >
-        </div>
-      </section>
-
-      <div class="surcharge">
-        <button id="surchargeBtn" type="button" aria-live="polite">
-          Zuschlag +2,70 € <strong id="surchargeCount">× 0</strong>
-        </button>
-        <span class="muted"
-          >Mehr als 4 Pers., Schneeketten, Sportgeräte-Transporte</span
+      <div class="footer__dev">
+        <!-- 1️⃣ Entwicklung -->
+        <a
+          href="https://t.me/aamineev"
+          target="_blank"
+          rel="noopener"
+          aria-label="Schreiben in Telegram @aamineev"
         >
-      </div>
+          <svg
+            class="tg-icon"
+            width="16"
+            height="16"
+            viewBox="0 0 24 24"
+            aria-hidden="true"
+          >
+            <path
+              d="M9.7 14.7l-.3 4.6c.4 0 .6-.2.8-.4l2-1.9 4.1 3c.7.4 1.2.2 1.4-.6l2.6-12.2c.2-.9-.3-1.3-1-1.1L4 10.3c-.8.2-.8.7-.1.9l4.3 1.3 10-6.3c.5-.3.9-.1.5.2l-9 8.3z"
+              fill="currentColor"
+            />
+          </svg>
+          Entwicklung
+        </a>
 
-      <div class="rates">
-        <div>
-          Bis 5 km:
-          <span class="muted">Tag 2,90 €/km · Nacht/Feiertag 3,30 €/km</span>
-        </div>
-        <div>
-          Über 5 km:
-          <span class="muted">Tag 2,80 €/km · Nacht/Feiertag 2,80 €/km</span>
-        </div>
-        <div>
-          Nachttarif:
-          <span class="muted">20:00 - 6:00</span>
-          Feiertag:<span class="muted"> Feiertäge, Sonntags</span>
-        </div>
+        <!-- 2️⃣ Hilfe -->
+        <a
+          href="hilfe.html"
+          class="footer__help"
+          aria-label="Öffnen der Hilfeseite"
+        >
+          <svg
+            class="help-icon"
+            width="16"
+            height="16"
+            viewBox="0 0 24 24"
+            aria-hidden="true"
+          >
+            <path
+              d="M12 2a10 10 0 1 0 10 10A10.011 10.011 0 0 0 12 2Zm.25 17a1.25 1.25 0 1 1 1.25-1.25A1.25 1.25 0 0 1 12.25 19ZM13.5 13a.75.75 0 0 1-.75.75h-1.5a.75.75 0 0 1-.75-.75v-.5a2.5 2.5 0 0 1 2.5-2.5 1.5 1.5 0 1 0-1.5-1.5.75.75 0 0 1-1.5 0 3 3 0 1 1 3.75 2.9Z"
+              fill="currentColor"
+            />
+          </svg>
+          Hilfe
+        </a>
+
+        <!-- 3️⃣ Переключатель темы -->
+        <button
+          id="themeToggle"
+          class="footer__theme"
+          aria-label="Thema umschalten"
+        >
+          🌙 Dunkel
+        </button>
       </div>
     </main>
-
-    <script>
-      (() => {
-        const nfMoney = new Intl.NumberFormat("de-AT", {
-          style: "currency",
-          currency: "EUR",
-          minimumFractionDigits: 2,
-          maximumFractionDigits: 2,
-        });
-        const nf1 = new Intl.NumberFormat("de-AT", {
-          minimumFractionDigits: 0,
-          maximumFractionDigits: 1,
-        });
-
-        const RATES = {
-          base: 5,
-          dayFirst: 2.9,
-          dayNext: 2.8,
-          nightFirst: 3.3,
-          nightNext: 2.8,
-          cutoff: 5,
-          surcharge: 2.7, // за 1 шт.
-        };
-
-        const kmInput = document.getElementById("km");
-        const totalDayEl = document.querySelector("#total-day strong");
-        const totalNightEl = document.querySelector("#total-night strong");
-        const fDay = document.getElementById("formula-day");
-        const fNight = document.getElementById("formula-night");
-
-        const surchargeBtn = document.getElementById("surchargeBtn");
-        const surchargeCountEl = document.getElementById("surchargeCount");
-        let surchargeCount = 0;
-
-        // --- UX: автофокус и автоselect ---
-        window.addEventListener("load", () => {
-          kmInput.focus();
-          kmInput.select();
-        });
-        kmInput.addEventListener("focus", () => kmInput.select());
-        // Блокируем прокрутку-колёсиком на number
-        kmInput.addEventListener("wheel", () => kmInput.blur(), {
-          passive: true,
-        });
-        // Убираем минус при вводе
-        kmInput.addEventListener("input", () => {
-          if (kmInput.value.includes("-"))
-            kmInput.value = kmInput.value.replaceAll("-", "");
-          update();
-        });
-
-        // --- Zuschlag накопительно ---
-        function updateSurchargeUI() {
-          surchargeCountEl.textContent = `× ${surchargeCount}`;
-        }
-        surchargeBtn.addEventListener("click", () => {
-          // +1 за клик
-          surchargeCount += 1;
-          updateSurchargeUI();
-          update();
-        });
-        // по длительному нажатию (или правому клику) — сброс до 0 (удобно, но не обязательно)
-        surchargeBtn.addEventListener("contextmenu", (e) => {
-          e.preventDefault();
-          surchargeCount = 0;
-          updateSurchargeUI();
-          update();
-        });
-        surchargeBtn.addEventListener("dblclick", () => {
-          surchargeCount = 0;
-          updateSurchargeUI();
-          update();
-        });
-
-        // --- математика ---
-        function calcTotal(km, firstRate, nextRate) {
-          const firstKm = Math.min(Math.max(km, 0), RATES.cutoff);
-          const nextKm = Math.max(km - RATES.cutoff, 0);
-          const total = RATES.base + firstKm * firstRate + nextKm * nextRate;
-          return { total, firstKm, nextKm };
-        }
-
-        // округление к €0,10
-        function roundToStep(value, step = 0.1) {
-          return Math.round(value / step) * step;
-        }
-        const fmtMoney = (x) =>
-          nfMoney.format(roundToStep(Math.round(x * 100) / 100)); // сначала до цента, потом к 10 центам
-        const fmtNum = (x) => nf1.format(x);
-
-        function update() {
-          const raw = kmInput.value.replace(",", ".");
-          const km = Number.parseFloat(raw);
-          const kmValid = Number.isFinite(km) && km >= 0 ? km : 0;
-          const addS = surchargeCount * RATES.surcharge;
-
-          const day = calcTotal(kmValid, RATES.dayFirst, RATES.dayNext);
-          const night = calcTotal(kmValid, RATES.nightFirst, RATES.nightNext);
-
-          // итоги с округлением к 10 центам
-          totalDayEl.textContent = nfMoney.format(
-            roundToStep(day.total + addS)
-          );
-          totalNightEl.textContent = nfMoney.format(
-            roundToStep(night.total + addS)
-          );
-
-          const sTxt = surchargeCount ? ` + 2,70 € × ${surchargeCount}` : "";
-          fDay.innerHTML = `<code>Tag: ${nfMoney.format(
-            RATES.base
-          )} + ${nfMoney.format(RATES.dayFirst)} × ${fmtNum(
-            day.firstKm
-          )} km + ${nfMoney.format(RATES.dayNext)} × ${fmtNum(
-            day.nextKm
-          )} km${sTxt}</code>`;
-          fNight.innerHTML = `<code>Nacht/Feiertag: ${nfMoney.format(
-            RATES.base
-          )} + ${nfMoney.format(RATES.nightFirst)} × ${fmtNum(
-            night.firstKm
-          )} km + ${nfMoney.format(RATES.nightNext)} × ${fmtNum(
-            night.nextKm
-          )} km${sTxt}</code>`;
-        }
-
-        update();
-      })();
-    </script>
+    <script src="./assets/js/main.js" defer></script>
   </body>
 </html>
