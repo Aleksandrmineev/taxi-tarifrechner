@@ -209,10 +209,6 @@ input[type="number"]:focus {
 
 .muted {
   color: var(--muted);
-  padding: 12px 14px;
-  background: var(--surface-2);
-  border: 1px dashed var(--surface-3);
-  border-radius: 12px;
   font-size: 12px;
 }
 
