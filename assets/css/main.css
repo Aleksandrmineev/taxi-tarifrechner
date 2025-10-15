@@ -77,7 +77,6 @@ body {
     var(--bg);
   display: grid;
   place-items: center;
-  padding: 24px;
   transition: background var(--transition-base), color var(--transition-base);
 }
 
@@ -93,8 +92,8 @@ body {
   /* ширина: не более max и не ближе к краям, чем внутренние отступы */
   inline-size: min(var(--container-max), 100% - (var(--container-pad) * 2));
   margin-inline: auto;
-  padding-inline: max(var(--container-pad), env(safe-area-inset-left));
-  padding-block: var(--container-pad);
+  /* padding-inline: max(var(--container-pad), env(safe-area-inset-left));
+  padding-block: var(--container-pad); */
 }
 
 /* Варианты ширины при необходимости */
@@ -117,7 +116,7 @@ body {
   background: var(--card);
   border-radius: var(--radius);
   box-shadow: var(--shadow);
-  padding: clamp(20px, 4vw, 32px);
+  /* padding: clamp(20px, 4vw, 32px); */
   inline-size: 100%;
 }
 
